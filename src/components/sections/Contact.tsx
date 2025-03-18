@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { useInView } from '@/hooks/useInView';
 import AnimatedText from '../ui/AnimatedText';
@@ -20,17 +19,15 @@ const Contact: React.FC = () => {
             className="text-3xl md:text-4xl font-bold mb-4"
           />
           <AnimatedText
+            text="Have a project in mind or want to chat? Feel free to reach out!"
             as="p"
             animation="fade"
             delay={300}
             className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            Have a project in mind or want to chat? Feel free to reach out!
-          </AnimatedText>
+          />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
           <div 
             className={`bg-card rounded-2xl border border-border p-8 shadow-sm transition-all duration-700 ${
               isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
@@ -101,7 +98,6 @@ const Contact: React.FC = () => {
             </form>
           </div>
           
-          {/* Contact Information */}
           <div 
             className={`space-y-8 transition-all duration-700 ${
               isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'

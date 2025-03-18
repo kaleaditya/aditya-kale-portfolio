@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { useInView } from '@/hooks/useInView';
 import AnimatedText from '../ui/AnimatedText';
@@ -100,13 +99,12 @@ const InstagramSection: React.FC = () => {
             className="text-3xl md:text-4xl font-bold mb-4"
           />
           <AnimatedText
+            text="Educational content I share on Instagram to help other developers learn and grow."
             as="p"
             animation="fade"
             delay={300}
             className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            Educational content I share on Instagram to help other developers learn and grow.
-          </AnimatedText>
+          />
         </div>
 
         <div 

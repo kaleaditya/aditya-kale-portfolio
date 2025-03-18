@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { useInView } from '@/hooks/useInView';
 import { Calendar, GraduationCap, Briefcase, Download } from 'lucide-react';
@@ -73,14 +72,12 @@ const About: React.FC = () => {
             className="text-3xl md:text-4xl font-bold mb-4"
           />
           <AnimatedText
+            text="I combine technical expertise with creative problem-solving to build exceptional user experiences."
             as="p"
             animation="fade"
             delay={300}
             className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            I combine technical expertise with creative problem-solving
-            to build exceptional user experiences.
-          </AnimatedText>
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

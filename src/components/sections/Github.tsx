@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import { Github as GithubIcon, Star, GitFork, Code, ExternalLink } from 'lucide-react';
@@ -119,13 +118,12 @@ const GithubSection: React.FC = () => {
             className="text-3xl md:text-4xl font-bold mb-4"
           />
           <AnimatedText
+            text="Open-source contributions and personal projects I've developed and shared with the community."
             as="p"
             animation="fade"
             delay={300}
             className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            Open-source contributions and personal projects I've developed and shared with the community.
-          </AnimatedText>
+          />
         </div>
 
         <div 

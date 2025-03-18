@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { useInView } from '@/hooks/useInView';
 import AnimatedButton from '../ui/AnimatedButton';
@@ -43,14 +42,12 @@ const Hero: React.FC = () => {
             />
             
             <AnimatedText
+              text="I'm a passionate frontend developer specializing in React and React Native, crafting beautiful, functional user interfaces that people love to use."
               as="p"
               animation="fade"
               delay={1000}
               className="text-xl text-muted-foreground max-w-2xl mx-auto mt-6"
-            >
-              I'm a passionate frontend developer specializing in React and React Native, 
-              crafting beautiful, functional user interfaces that people love to use.
-            </AnimatedText>
+            />
           </div>
           
           <div 

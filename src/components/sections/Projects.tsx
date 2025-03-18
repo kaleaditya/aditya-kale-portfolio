@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import ProjectCard, { Project } from '../ui/ProjectCard';
@@ -93,13 +92,12 @@ const Projects: React.FC = () => {
             className="text-3xl md:text-4xl font-bold mb-4"
           />
           <AnimatedText
+            text="A selection of my recent work, demonstrating my skills in React, React Native, and frontend development."
             as="p"
             animation="fade"
             delay={300}
             className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            A selection of my recent work, demonstrating my skills in React, React Native, and frontend development.
-          </AnimatedText>
+          />
         </div>
 
         <div 
