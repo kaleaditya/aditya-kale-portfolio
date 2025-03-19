@@ -102,7 +102,7 @@ const AnimatedButton = ({
       
       {magnetic && (
         <span
-          className="absolute inset-0 bg-black/10 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
           style={{
             transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
             width: '150%',
