@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { toast } from "@/hooks/use-toast";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Sample social link type
 interface SocialLink {
@@ -14,6 +18,70 @@ interface SocialLink {
   icon: string;
   enabled: boolean;
 }
+
+// Sortable item component
+const SortableItem = ({ link, updateSocialLink, removeSocialLink }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: link.id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  
+  return (
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className="grid gap-4 sm:grid-cols-[auto,1fr,1fr,auto,auto] items-end border-b border-border pb-4"
+    >
+      <div 
+        className="flex items-center justify-center w-8 h-8 bg-secondary rounded-md cursor-grab" 
+        {...attributes} 
+        {...listeners}
+      >
+        <Grip size={16} className="text-muted-foreground" />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor={`platform-${link.id}`}>Platform</Label>
+        <Input 
+          id={`platform-${link.id}`}
+          value={link.platform}
+          onChange={(e) => updateSocialLink(link.id, 'platform', e.target.value)}
+          placeholder="e.g., GitHub"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor={`url-${link.id}`}>URL</Label>
+        <Input 
+          id={`url-${link.id}`}
+          value={link.url}
+          onChange={(e) => updateSocialLink(link.id, 'url', e.target.value)}
+          placeholder="https://..."
+        />
+      </div>
+      
+      <div className="flex items-center justify-center">
+        <Switch 
+          checked={link.enabled}
+          onCheckedChange={(checked) => updateSocialLink(link.id, 'enabled', checked)}
+        />
+      </div>
+      
+      <div>
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:bg-destructive/10"
+          onClick={() => removeSocialLink(link.id)}
+        >
+          <Trash size={16} />
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const SocialAdmin = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
@@ -54,6 +122,14 @@ const SocialAdmin = () => {
     enabled: true,
   });
   
+  // Set up DND sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  
   const updateSocialLink = (id: string, field: string, value: string | boolean) => {
     setSocialLinks(socialLinks.map(link => 
       link.id === id ? { ...link, [field]: value } : link
@@ -75,16 +151,50 @@ const SocialAdmin = () => {
         icon: '',
         enabled: true,
       });
+      toast({
+        title: "Social link added",
+        description: `${newLink.platform} has been added to your social links`,
+      });
     }
   };
   
   const removeSocialLink = (id: string) => {
+    const linkToRemove = socialLinks.find(link => link.id === id);
     setSocialLinks(socialLinks.filter(link => link.id !== id));
+    
+    if (linkToRemove) {
+      toast({
+        title: "Social link removed",
+        description: `${linkToRemove.platform} has been removed from your social links`,
+        variant: "destructive",
+      });
+    }
   };
   
   const saveChanges = () => {
     console.log('Saving social links:', socialLinks);
-    alert('Social links updated successfully!');
+    toast({
+      title: "Changes saved",
+      description: "Your social links have been updated successfully",
+    });
+  };
+  
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setSocialLinks((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+      
+      toast({
+        title: "Order updated",
+        description: "Social links order has been updated",
+      });
+    }
   };
   
   return (
@@ -101,55 +211,25 @@ const SocialAdmin = () => {
         <h2 className="text-xl font-semibold mb-6">Social Links</h2>
         
         <div className="space-y-6">
-          {socialLinks.map((link) => (
-            <div 
-              key={link.id} 
-              className="grid gap-4 sm:grid-cols-[auto,1fr,1fr,auto,auto] items-end border-b border-border pb-4"
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext 
+              items={socialLinks.map(link => link.id)} 
+              strategy={verticalListSortingStrategy}
             >
-              <div className="flex items-center justify-center w-8 h-8 bg-secondary rounded-md">
-                {/* We'd render an icon here, but just showing platform first letter for simplicity */}
-                <span className="text-lg font-semibold">{link.platform.charAt(0)}</span>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor={`platform-${link.id}`}>Platform</Label>
-                <Input 
-                  id={`platform-${link.id}`}
-                  value={link.platform}
-                  onChange={(e) => updateSocialLink(link.id, 'platform', e.target.value)}
-                  placeholder="e.g., GitHub"
+              {socialLinks.map((link) => (
+                <SortableItem 
+                  key={link.id} 
+                  link={link} 
+                  updateSocialLink={updateSocialLink} 
+                  removeSocialLink={removeSocialLink} 
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor={`url-${link.id}`}>URL</Label>
-                <Input 
-                  id={`url-${link.id}`}
-                  value={link.url}
-                  onChange={(e) => updateSocialLink(link.id, 'url', e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              
-              <div className="flex items-center justify-center">
-                <Switch 
-                  checked={link.enabled}
-                  onCheckedChange={(checked) => updateSocialLink(link.id, 'enabled', checked)}
-                />
-              </div>
-              
-              <div>
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:bg-destructive/10"
-                  onClick={() => removeSocialLink(link.id)}
-                >
-                  <Trash size={16} />
-                </Button>
-              </div>
-            </div>
-          ))}
+              ))}
+            </SortableContext>
+          </DndContext>
           
           <div className="grid gap-4 sm:grid-cols-[auto,1fr,1fr,auto,auto] items-end pt-2">
             <div className="flex items-center justify-center w-8 h-8">
