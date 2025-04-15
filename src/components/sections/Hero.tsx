@@ -1,14 +1,35 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useInView } from '@/hooks/useInView';
 import AnimatedButton from '../ui/AnimatedButton';
 import AnimatedText from '../ui/AnimatedText';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useHero } from '@/hooks/useHero';
 
 const Hero: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(heroRef, { threshold: 0.1, once: true });
+  const [isLoading, setIsLoading] = useState(true);
+  const { heroData, fetchActiveHero } = useHero();
+  
+  useEffect(() => {
+    const loadHeroData = async () => {
+      setIsLoading(true);
+      await fetchActiveHero();
+      setIsLoading(false);
+    };
+    
+    loadHeroData();
+  }, []);
+  
+  // Default values to use if no hero data is available
+  const title = heroData?.title || 'Creating beautiful experiences with code';
+  const subtitle = heroData?.subtitle || 'React & React Native Developer';
+  const description = heroData?.description || 'I\'m a passionate frontend developer specializing in React and React Native, crafting beautiful, functional user interfaces that people love to use.';
+  const ctaText = heroData?.cta_text || 'View My Work';
+  const ctaLink = heroData?.cta_link || '#projects';
+  const profileImage = heroData?.profile_image || 'https://images.unsplash.com/photo-1618641986557-1ecd230959aa?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3';
   
   return (
     <section 
@@ -24,87 +45,94 @@ const Hero: React.FC = () => {
       </div>
       
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left space-y-8">
-            <div className="inline-block mb-4">
-              <span 
-                className={`inline-block px-4 py-1.5 rounded-full bg-accent-purple/10 text-accent-purple font-medium text-sm transition-all duration-700 ${
-                  isInView ? 'opacity-100' : 'opacity-0 -translate-y-4'
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-[60vh]">
+            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left space-y-8">
+              <div className="inline-block mb-4">
+                <span 
+                  className={`inline-block px-4 py-1.5 rounded-full bg-accent-purple/10 text-accent-purple font-medium text-sm transition-all duration-700 ${
+                    isInView ? 'opacity-100' : 'opacity-0 -translate-y-4'
+                  }`}
+                >
+                  {subtitle}
+                </span>
+              </div>
+              
+              <div className="max-w-2xl space-y-4">
+                <AnimatedText
+                  text={title}
+                  as="h1"
+                  animation="typing"
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight bg-gradient-to-r from-accent-purple via-accent-teal to-accent-coral bg-clip-text text-transparent"
+                  speed={50}
+                />
+                
+                <AnimatedText
+                  text={description}
+                  as="p"
+                  animation="fade"
+                  delay={1000}
+                  className="text-xl text-muted-foreground max-w-xl"
+                />
+              </div>
+              
+              <div 
+                className={`flex flex-col sm:flex-row gap-4 mt-8 transition-all duration-700 delay-700 ${
+                  isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
-                React & React Native Developer
-              </span>
+                <AnimatedButton 
+                  size="lg" 
+                  withArrow
+                  className="bg-accent-purple hover:bg-accent-purple/90"
+                  onClick={() => {
+                    const targetSection = document.getElementById(ctaLink?.replace('#', '') || 'projects');
+                    if (targetSection) {
+                      targetSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  {ctaText}
+                </AnimatedButton>
+                
+                <AnimatedButton 
+                  variant="outline" 
+                  size="lg"
+                  className="border-accent-teal text-accent-teal hover:bg-accent-teal/10"
+                  onClick={() => {
+                    const contactSection = document.getElementById('contact');
+                    if (contactSection) {
+                      contactSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  Contact Me
+                </AnimatedButton>
+              </div>
             </div>
             
-            <div className="max-w-2xl space-y-4">
-              <AnimatedText
-                text="Creating beautiful experiences with code"
-                as="h1"
-                animation="typing"
-                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight bg-gradient-to-r from-accent-purple via-accent-teal to-accent-coral bg-clip-text text-transparent"
-                speed={50}
-              />
-              
-              <AnimatedText
-                text="I'm a passionate frontend developer specializing in React and React Native, crafting beautiful, functional user interfaces that people love to use."
-                as="p"
-                animation="fade"
-                delay={1000}
-                className="text-xl text-muted-foreground max-w-xl"
-              />
-            </div>
-            
-            <div 
-              className={`flex flex-col sm:flex-row gap-4 mt-8 transition-all duration-700 delay-700 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <AnimatedButton 
-                size="lg" 
-                withArrow
-                className="bg-accent-purple hover:bg-accent-purple/90"
-                onClick={() => {
-                  const projectsSection = document.getElementById('projects');
-                  if (projectsSection) {
-                    projectsSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                View My Work
-              </AnimatedButton>
-              
-              <AnimatedButton 
-                variant="outline" 
-                size="lg"
-                className="border-accent-teal text-accent-teal hover:bg-accent-teal/10"
-                onClick={() => {
-                  const contactSection = document.getElementById('contact');
-                  if (contactSection) {
-                    contactSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                Contact Me
-              </AnimatedButton>
-            </div>
-          </div>
-          
-          <div className={`relative flex-1 transition-all duration-1000 delay-300 ${
-            isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-          }`}>
-            <div className="relative w-72 h-72 md:w-96 md:h-96 mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple via-accent-teal to-accent-coral rounded-full opacity-20 blur-md animate-pulse-slow"></div>
-              <Avatar className="w-full h-full border-4 border-white/20 shadow-xl">
-                <AvatarImage src="https://images.unsplash.com/photo-1618641986557-1ecd230959aa?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3" alt="Developer Portrait" className="object-cover" />
-                <AvatarFallback className="bg-accent-purple/10 text-accent-purple text-4xl">JS</AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-background rounded-full border-4 border-white/20 flex items-center justify-center text-accent-purple shadow-lg">
-                <span className="font-bold text-xl">5+</span>
-                <span className="text-xs ml-1">years<br/>exp</span>
+            <div className={`relative flex-1 transition-all duration-1000 delay-300 ${
+              isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
+            }`}>
+              <div className="relative w-72 h-72 md:w-96 md:h-96 mx-auto">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-purple via-accent-teal to-accent-coral rounded-full opacity-20 blur-md animate-pulse-slow"></div>
+                <Avatar className="w-full h-full border-4 border-white/20 shadow-xl">
+                  <AvatarImage src={profileImage} alt="Developer Portrait" className="object-cover" />
+                  <AvatarFallback className="bg-accent-purple/10 text-accent-purple text-4xl">JS</AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-background rounded-full border-4 border-white/20 flex items-center justify-center text-accent-purple shadow-lg">
+                  <span className="font-bold text-xl">5+</span>
+                  <span className="text-xs ml-1">years<br/>exp</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
           <button

@@ -48,6 +48,48 @@ export type Database = {
         }
         Relationships: []
       }
+      hero: {
+        Row: {
+          background_image: string | null
+          created_at: string
+          cta_link: string | null
+          cta_text: string | null
+          description: string
+          id: string
+          is_active: boolean
+          profile_image: string | null
+          subtitle: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          background_image?: string | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          profile_image?: string | null
+          subtitle: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          background_image?: string | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          profile_image?: string | null
+          subtitle?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           created_at: string

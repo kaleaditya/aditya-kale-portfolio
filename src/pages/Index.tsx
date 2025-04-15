@@ -23,11 +23,12 @@ const Index = () => {
   useEffect(() => {
     const fetchResume = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from('resumes')
           .select('*')
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
         
         if (error) {
           console.error("Error fetching resume:", error);
@@ -58,7 +59,7 @@ const Index = () => {
       {!loading && resume && (
         <div className="fixed bottom-6 right-6 z-50">
           <Button asChild className="shadow-lg flex items-center gap-2">
-            <a href={resume.url} download={resume.fileName}>
+            <a href={resume.url} download={resume.fileName} target="_blank" rel="noopener noreferrer">
               <Download size={16} />
               <span>Download CV</span>
             </a>
