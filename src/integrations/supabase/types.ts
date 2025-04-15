@@ -9,7 +9,138 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      experiences: {
+        Row: {
+          company: string
+          created_at: string
+          description: string
+          end_date: string | null
+          id: string
+          is_current: boolean
+          position: string
+          start_date: string
+          technologies: string[]
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          position: string
+          start_date: string
+          technologies?: string[]
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          position?: string
+          start_date?: string
+          technologies?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image: string | null
+          link: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          image?: string | null
+          link?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image?: string | null
+          link?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          created_at: string
+          display_order: number
+          enabled: boolean
+          icon: string | null
+          id: string
+          platform: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          icon?: string | null
+          id?: string
+          platform: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          icon?: string | null
+          id?: string
+          platform?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

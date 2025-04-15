@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Pencil, Trash, Plus, Image, Link } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Pencil, Trash, Plus, Image, Link, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Table,
@@ -20,39 +20,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-
-// Sample project type
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  tags: string[];
-  link: string;
-}
-
-// Mock data
-const sampleProjects: Project[] = [
-  {
-    id: '1',
-    title: 'E-commerce Platform',
-    description: 'A fully-featured e-commerce platform built with React and Node.js',
-    image: '/placeholder.svg',
-    tags: ['React', 'Node.js', 'MongoDB'],
-    link: 'https://example.com/project1',
-  },
-  {
-    id: '2',
-    title: 'Portfolio Website',
-    description: 'Personal portfolio website showcasing projects and skills',
-    image: '/placeholder.svg',
-    tags: ['React', 'Tailwind CSS', 'Vite'],
-    link: 'https://example.com/project2',
-  },
-];
+import { useProjects, Project } from '@/hooks/useProjects';
+import { toast } from '@/hooks/use-toast';
 
 const ProjectsAdmin = () => {
-  const [projects, setProjects] = useState<Project[]>(sampleProjects);
+  const { projects, loading, error, fetchProjects, addProject, updateProject, deleteProject } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -63,6 +35,10 @@ const ProjectsAdmin = () => {
     tags: [],
     link: '',
   });
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   // Open form to create new project
   const handleNewProject = () => {
@@ -82,9 +58,9 @@ const ProjectsAdmin = () => {
     setFormData({
       title: project.title,
       description: project.description,
-      image: project.image,
+      image: project.image || '',
       tags: project.tags,
-      link: project.link,
+      link: project.link || '',
     });
     setCurrentProject(project);
     setIsDialogOpen(true);
@@ -97,11 +73,13 @@ const ProjectsAdmin = () => {
   };
 
   // Confirm deletion of project
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (currentProject) {
-      setProjects(projects.filter(p => p.id !== currentProject.id));
-      setIsDeleteDialogOpen(false);
-      setCurrentProject(null);
+      const success = await deleteProject(currentProject.id);
+      if (success) {
+        setIsDeleteDialogOpen(false);
+        setCurrentProject(null);
+      }
     }
   };
 
@@ -115,25 +93,28 @@ const ProjectsAdmin = () => {
   };
 
   // Save project (create new or update existing)
-  const handleSaveProject = () => {
-    if (currentProject) {
-      // Update existing project
-      setProjects(projects.map(p => 
-        p.id === currentProject.id ? { ...p, ...formData } : p
-      ));
-    } else {
-      // Create new project
-      const newProject: Project = {
-        id: Date.now().toString(),
-        title: formData.title || 'Untitled Project',
-        description: formData.description || '',
-        image: formData.image || '/placeholder.svg',
-        tags: formData.tags || [],
-        link: formData.link || '',
-      };
-      setProjects([...projects, newProject]);
+  const handleSaveProject = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
     }
-    setIsDialogOpen(false);
+
+    try {
+      if (currentProject) {
+        // Update existing project
+        await updateProject(currentProject.id, formData);
+      } else {
+        // Create new project
+        await addProject(formData as Omit<Project, 'id' | 'created_at' | 'updated_at'>);
+      }
+      setIsDialogOpen(false);
+    } catch (err) {
+      console.error('Error saving project:', err);
+    }
   };
 
   return (
@@ -146,57 +127,82 @@ const ProjectsAdmin = () => {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Tags</TableHead>
-              <TableHead className="w-[150px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {projects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.title}</TableCell>
-                <TableCell className="max-w-xs truncate">{project.description}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {project.tags.map((tag, index) => (
-                      <span 
-                        key={index} 
-                        className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleEditProject(project)}
-                    >
-                      <Pencil size={16} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeleteClick(project)}
-                    >
-                      <Trash size={16} />
-                    </Button>
-                  </div>
-                </TableCell>
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-destructive/20 text-destructive p-4 rounded-md mb-6">
+          <p>Error loading projects: {error}</p>
+          <Button variant="outline" onClick={fetchProjects} className="mt-2">
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead className="w-[150px]">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {projects.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    No projects found. Click "Add Project" to create one.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                projects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell className="font-medium">{project.title}</TableCell>
+                    <TableCell className="max-w-xs truncate">{project.description}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {project.tags.map((tag, index) => (
+                          <span 
+                            key={index} 
+                            className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEditProject(project)}
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteClick(project)}
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Project Form Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -237,7 +243,7 @@ const ProjectsAdmin = () => {
                   name="image"
                   value={formData.image || ''}
                   onChange={handleChange}
-                  placeholder="/placeholder.svg"
+                  placeholder="https://example.com/image.jpg"
                   className="flex-1"
                 />
                 <Button variant="outline" className="shrink-0">
@@ -287,8 +293,13 @@ const ProjectsAdmin = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveProject}>
-              {currentProject ? 'Update Project' : 'Add Project'}
+            <Button onClick={handleSaveProject} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : currentProject ? 'Update Project' : 'Add Project'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -313,8 +324,14 @@ const ProjectsAdmin = () => {
             <Button 
               variant="destructive" 
               onClick={handleDeleteProject}
+              disabled={loading}
             >
-              Delete
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,26 +1,22 @@
 
-import React, { useState } from 'react';
-import { Save, Plus, Trash, Grip } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, Plus, Trash, Grip, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from "@/hooks/use-toast";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-// Sample social link type
-interface SocialLink {
-  id: string;
-  platform: string;
-  url: string;
-  icon: string;
-  enabled: boolean;
-}
+import { useSocialLinks, SocialLink } from '@/hooks/useSocialLinks';
 
 // Sortable item component
-const SortableItem = ({ link, updateSocialLink, removeSocialLink }) => {
+const SortableItem = ({ link, updateSocialLink, removeSocialLink }: {
+  link: SocialLink;
+  updateSocialLink: (id: string, field: string, value: string | boolean) => void;
+  removeSocialLink: (id: string) => void;
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: link.id });
   
   const style = {
@@ -84,43 +80,27 @@ const SortableItem = ({ link, updateSocialLink, removeSocialLink }) => {
 };
 
 const SocialAdmin = () => {
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-    {
-      id: '1',
-      platform: 'GitHub',
-      url: 'https://github.com/username',
-      icon: 'github',
-      enabled: true,
-    },
-    {
-      id: '2',
-      platform: 'LinkedIn',
-      url: 'https://linkedin.com/in/username',
-      icon: 'linkedin',
-      enabled: true,
-    },
-    {
-      id: '3',
-      platform: 'Twitter',
-      url: 'https://twitter.com/username',
-      icon: 'twitter',
-      enabled: true,
-    },
-    {
-      id: '4',
-      platform: 'Instagram',
-      url: 'https://instagram.com/username',
-      icon: 'instagram',
-      enabled: false,
-    },
-  ]);
+  const { 
+    socialLinks, 
+    loading, 
+    error, 
+    fetchSocialLinks, 
+    addSocialLink, 
+    updateSocialLink: updateLink, 
+    deleteSocialLink,
+    updateSocialLinkOrder 
+  } = useSocialLinks();
   
-  const [newLink, setNewLink] = useState<Omit<SocialLink, 'id'>>({
+  const [newLink, setNewLink] = useState<Omit<SocialLink, 'id' | 'created_at' | 'updated_at' | 'display_order'>>({
     platform: '',
     url: '',
-    icon: '',
+    icon: null,
     enabled: true,
   });
+
+  useEffect(() => {
+    fetchSocialLinks();
+  }, []);
   
   // Set up DND sensors
   const sensors = useSensors(
@@ -131,69 +111,61 @@ const SocialAdmin = () => {
   );
   
   const updateSocialLink = (id: string, field: string, value: string | boolean) => {
-    setSocialLinks(socialLinks.map(link => 
-      link.id === id ? { ...link, [field]: value } : link
-    ));
+    updateLink(id, { [field]: value });
   };
   
-  const addSocialLink = () => {
+  const addNewSocialLink = async () => {
     if (newLink.platform.trim() && newLink.url.trim()) {
-      setSocialLinks([
-        ...socialLinks,
-        {
-          ...newLink,
-          id: Date.now().toString(),
-        },
-      ]);
+      // Find highest display order and increment by 1
+      const highestOrder = socialLinks.length > 0 
+        ? Math.max(...socialLinks.map(link => link.display_order)) 
+        : -1;
+        
+      await addSocialLink({
+        ...newLink,
+        display_order: highestOrder + 1,
+      });
+      
       setNewLink({
         platform: '',
         url: '',
-        icon: '',
+        icon: null,
         enabled: true,
-      });
-      toast({
-        title: "Social link added",
-        description: `${newLink.platform} has been added to your social links`,
       });
     }
   };
   
-  const removeSocialLink = (id: string) => {
-    const linkToRemove = socialLinks.find(link => link.id === id);
-    setSocialLinks(socialLinks.filter(link => link.id !== id));
-    
-    if (linkToRemove) {
-      toast({
-        title: "Social link removed",
-        description: `${linkToRemove.platform} has been removed from your social links`,
-        variant: "destructive",
-      });
-    }
+  const removeSocialLink = async (id: string) => {
+    await deleteSocialLink(id);
   };
   
   const saveChanges = () => {
-    console.log('Saving social links:', socialLinks);
+    // This is now automatically saved on each update
     toast({
       title: "Changes saved",
-      description: "Your social links have been updated successfully",
+      description: "All changes are automatically saved",
     });
   };
   
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (active.id !== over.id) {
-      setSocialLinks((items) => {
-        const oldIndex = items.findIndex(item => item.id === active.id);
-        const newIndex = items.findIndex(item => item.id === over.id);
-        
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (over && active.id !== over.id) {
+      // Find the current items
+      const oldIndex = socialLinks.findIndex(item => item.id === active.id);
+      const newIndex = socialLinks.findIndex(item => item.id === over.id);
       
-      toast({
-        title: "Order updated",
-        description: "Social links order has been updated",
-      });
+      // Update local state first for immediate UI feedback
+      const newOrder = arrayMove(socialLinks, oldIndex, newIndex);
+      
+      // Create updates with new display order values
+      const updates = newOrder.map((link, index) => ({
+        id: link.id,
+        display_order: index
+      }));
+      
+      // Send the updates to the database
+      await updateSocialLinkOrder(updates);
     }
   };
   
@@ -207,74 +179,96 @@ const SocialAdmin = () => {
         </Button>
       </div>
       
-      <div className="p-6 bg-card rounded-lg border border-border">
-        <h2 className="text-xl font-semibold mb-6">Social Links</h2>
-        
-        <div className="space-y-6">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext 
-              items={socialLinks.map(link => link.id)} 
-              strategy={verticalListSortingStrategy}
-            >
-              {socialLinks.map((link) => (
-                <SortableItem 
-                  key={link.id} 
-                  link={link} 
-                  updateSocialLink={updateSocialLink} 
-                  removeSocialLink={removeSocialLink} 
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-destructive/20 text-destructive p-4 rounded-md mb-6">
+          <p>Error loading social links: {error}</p>
+          <Button variant="outline" onClick={fetchSocialLinks} className="mt-2">
+            Try Again
+          </Button>
+        </div>
+      )}
+      
+      {!loading && !error && (
+        <div className="p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl font-semibold mb-6">Social Links</h2>
           
-          <div className="grid gap-4 sm:grid-cols-[auto,1fr,1fr,auto,auto] items-end pt-2">
-            <div className="flex items-center justify-center w-8 h-8">
-              <Plus size={18} className="text-muted-foreground" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="new-platform">New Platform</Label>
-              <Input 
-                id="new-platform"
-                value={newLink.platform}
-                onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
-                placeholder="e.g., GitHub"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="new-url">URL</Label>
-              <Input 
-                id="new-url"
-                value={newLink.url}
-                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-            
-            <div className="flex items-center justify-center">
-              <Switch 
-                checked={newLink.enabled}
-                onCheckedChange={(checked) => setNewLink({ ...newLink, enabled: checked })}
-              />
-            </div>
-            
-            <div>
-              <Button 
-                variant="outline"
-                onClick={addSocialLink}
-                disabled={!newLink.platform.trim() || !newLink.url.trim()}
+          <div className="space-y-6">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={socialLinks.map(link => link.id)} 
+                strategy={verticalListSortingStrategy}
               >
-                Add
-              </Button>
+                {socialLinks.map((link) => (
+                  <SortableItem 
+                    key={link.id} 
+                    link={link} 
+                    updateSocialLink={updateSocialLink} 
+                    removeSocialLink={removeSocialLink} 
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+            
+            <div className="grid gap-4 sm:grid-cols-[auto,1fr,1fr,auto,auto] items-end pt-2">
+              <div className="flex items-center justify-center w-8 h-8">
+                <Plus size={18} className="text-muted-foreground" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-platform">New Platform</Label>
+                <Input 
+                  id="new-platform"
+                  value={newLink.platform}
+                  onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
+                  placeholder="e.g., GitHub"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="new-url">URL</Label>
+                <Input 
+                  id="new-url"
+                  value={newLink.url}
+                  onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              
+              <div className="flex items-center justify-center">
+                <Switch 
+                  checked={newLink.enabled}
+                  onCheckedChange={(checked) => setNewLink({ ...newLink, enabled: checked })}
+                />
+              </div>
+              
+              <div>
+                <Button 
+                  variant="outline"
+                  onClick={addNewSocialLink}
+                  disabled={!newLink.platform.trim() || !newLink.url.trim() || loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : 'Add'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       
       <div className="p-6 bg-card rounded-lg border border-border">
         <h2 className="text-xl font-semibold mb-4">Preview</h2>
