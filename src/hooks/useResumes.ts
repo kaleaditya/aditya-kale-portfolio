@@ -52,14 +52,26 @@ export const useResumes = () => {
       
       // Upload file to storage
       const filePath = `${Date.now()}_${file.name}`;
+      
+      // Track upload progress manually
+      const progressHandler = (progress: number) => {
+        setUploadProgress(Math.round(progress * 100));
+      };
+      
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 0.1;
+        if (progress < 0.95) {
+          progressHandler(progress);
+        }
+      }, 100);
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('resumes')
-        .upload(filePath, file, {
-          onUploadProgress: (progress) => {
-            const percent = progress.percent ? Math.round(progress.percent * 100) : 0;
-            setUploadProgress(percent);
-          }
-        });
+        .upload(filePath, file);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100); // Set to 100% when upload is complete
       
       if (uploadError) throw uploadError;
       
