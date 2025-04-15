@@ -9,7 +9,9 @@ import {
   Mail, 
   Share2, 
   ChevronLeft, 
-  ChevronRight
+  ChevronRight,
+  Briefcase,
+  FileText
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -55,6 +57,8 @@ const AdminSidebar = () => {
       <nav className="flex-1 py-4 px-2 space-y-1">
         <NavItem to="/admin/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" collapsed={collapsed} />
         <NavItem to="/admin/projects" icon={<FolderKanban size={18} />} label="Projects" collapsed={collapsed} />
+        <NavItem to="/admin/experiences" icon={<Briefcase size={18} />} label="Experience" collapsed={collapsed} />
+        <NavItem to="/admin/resume" icon={<FileText size={18} />} label="Resume" collapsed={collapsed} />
         <NavItem to="/admin/about" icon={<User size={18} />} label="About" collapsed={collapsed} />
         <NavItem to="/admin/hero" icon={<Home size={18} />} label="Hero" collapsed={collapsed} />
         <NavItem to="/admin/contact" icon={<Mail size={18} />} label="Contact" collapsed={collapsed} />

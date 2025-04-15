@@ -8,6 +8,8 @@ import {
   Home, 
   Mail, 
   Share2,
+  FileText,
+  Briefcase,
   ArrowRight
 } from 'lucide-react';
 
@@ -59,7 +61,7 @@ const AdminDashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatusCard title="Total Projects" value="12" color="text-accent-teal" />
-        <StatusCard title="Skills" value="8" color="text-accent-coral" />
+        <StatusCard title="Experiences" value="4" color="text-accent-coral" />
         <StatusCard title="Social Links" value="5" color="text-accent-purple" />
         <StatusCard title="Contact Messages" value="24" color="text-primary" />
       </div>
@@ -72,6 +74,18 @@ const AdminDashboard = () => {
             title="Projects"
             description="Manage your portfolio projects"
             path="/admin/projects"
+          />
+          <QuickAccessCard
+            icon={<Briefcase size={24} />}
+            title="Experience"
+            description="Update your work history and professional experience"
+            path="/admin/experiences"
+          />
+          <QuickAccessCard
+            icon={<FileText size={24} />}
+            title="Resume"
+            description="Upload and manage your resume"
+            path="/admin/resume"
           />
           <QuickAccessCard
             icon={<User size={24} />}

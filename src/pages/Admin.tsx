@@ -9,6 +9,8 @@ import AboutAdmin from '@/components/admin/AboutAdmin';
 import HeroAdmin from '@/components/admin/HeroAdmin';
 import ContactAdmin from '@/components/admin/ContactAdmin';
 import SocialAdmin from '@/components/admin/SocialAdmin';
+import ExperiencesAdmin from '@/components/admin/ExperiencesAdmin';
+import ResumeAdmin from '@/components/admin/ResumeAdmin';
 
 // Simple authentication state (replace with proper auth later)
 const useAuth = () => {
@@ -99,6 +101,8 @@ const AdminLayout = () => {
             <Route path="/hero" element={<HeroAdmin />} />
             <Route path="/contact" element={<ContactAdmin />} />
             <Route path="/social" element={<SocialAdmin />} />
+            <Route path="/experiences" element={<ExperiencesAdmin />} />
+            <Route path="/resume" element={<ResumeAdmin />} />
           </Routes>
         </main>
       </div>
