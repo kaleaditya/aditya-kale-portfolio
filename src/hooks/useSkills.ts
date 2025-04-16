@@ -23,15 +23,17 @@ export const useSkills = () => {
       setLoading(true);
       setError(null);
       
+      // Use type assertion to work around TypeScript errors
       const { data, error } = await supabase
-        .from('skills')
+        .from('skills' as any)
         .select('*')
         .order('display_order', { ascending: true });
       
       if (error) throw error;
       
-      setSkills(data || []);
-      return data;
+      // Type assertion to ensure the data is treated as Skill[]
+      setSkills(data as unknown as Skill[]);
+      return data as unknown as Skill[];
     } catch (err: any) {
       console.error('Error fetching skills:', err);
       setError(err.message);
@@ -51,20 +53,23 @@ export const useSkills = () => {
       setLoading(true);
       setError(null);
       
+      // Use type assertion to work around TypeScript errors
       const { data, error } = await supabase
-        .from('skills')
-        .insert([skill])
+        .from('skills' as any)
+        .insert([skill as any])
         .select();
       
       if (error) throw error;
       
-      setSkills(prev => [...prev, data[0]]);
+      // Type assertion to ensure the data is treated as Skill
+      const newSkill = data?.[0] as unknown as Skill;
+      setSkills(prev => [...prev, newSkill]);
       toast({
         title: 'Success',
         description: 'Skill added successfully',
       });
       
-      return data[0];
+      return newSkill;
     } catch (err: any) {
       console.error('Error adding skill:', err);
       setError(err.message);
@@ -84,21 +89,24 @@ export const useSkills = () => {
       setLoading(true);
       setError(null);
       
+      // Use type assertion to work around TypeScript errors
       const { data, error } = await supabase
-        .from('skills')
-        .update(updates)
+        .from('skills' as any)
+        .update(updates as any)
         .eq('id', id)
         .select();
       
       if (error) throw error;
       
-      setSkills(prev => prev.map(s => s.id === id ? data[0] : s));
+      // Type assertion to ensure the data is treated as Skill
+      const updatedSkill = data?.[0] as unknown as Skill;
+      setSkills(prev => prev.map(s => s.id === id ? updatedSkill : s));
       toast({
         title: 'Success',
         description: 'Skill updated successfully',
       });
       
-      return data[0];
+      return updatedSkill;
     } catch (err: any) {
       console.error('Error updating skill:', err);
       setError(err.message);
@@ -118,8 +126,9 @@ export const useSkills = () => {
       setLoading(true);
       setError(null);
       
+      // Use type assertion to work around TypeScript errors
       const { error } = await supabase
-        .from('skills')
+        .from('skills' as any)
         .delete()
         .eq('id', id);
       
@@ -153,9 +162,10 @@ export const useSkills = () => {
       
       // Update each skill's display_order in database
       for (const skill of skillsWithOrder) {
+        // Use type assertion to work around TypeScript errors
         const { error } = await supabase
-          .from('skills')
-          .update({ display_order: skill.display_order })
+          .from('skills' as any)
+          .update({ display_order: skill.display_order } as any)
           .eq('id', skill.id);
         
         if (error) throw error;

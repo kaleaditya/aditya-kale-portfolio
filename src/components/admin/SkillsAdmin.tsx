@@ -100,7 +100,7 @@ const SkillsAdmin = () => {
     level: 50,
     display_order: 0
   });
-
+  
   // DnD setup
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -209,21 +209,10 @@ const SkillsAdmin = () => {
         display_order: index
       }));
       
-      // Optimistically update the UI
-      setSkills(newSkills);
-      
       // Update in the database
       await updateSkillOrder(updatedSkills);
     }
   };
-
-  // Need to add this setSkills function as it's used by handleDragEnd
-  const [setSkills] = useState<React.Dispatch<React.SetStateAction<Skill[]>>>(() => {
-    return (newSkills) => {
-      // This is just a placeholder function that will be overwritten by the real setSkills
-      // from the useSkills hook
-    };
-  });
 
   return (
     <div className="space-y-8">
