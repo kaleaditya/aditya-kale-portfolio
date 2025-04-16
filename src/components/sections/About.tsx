@@ -51,7 +51,7 @@ const About = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-0">
           <div className="col-span-1 lg:col-span-2">
             <h3 className="text-2xl font-semibold mb-6">About Me</h3>
             
@@ -62,7 +62,7 @@ const About = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-4 gap-3 mt-8">
               <div className="bg-card p-4 rounded-lg border border-border text-center">
                 <div className="bg-primary/10 text-primary p-2 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                   <GraduationCap size={24} />
@@ -98,7 +98,7 @@ const About = () => {
           </div>
           
           <div className="col-span-1 lg:col-span-3">
-            <h3 className="text-2xl font-semibold mb-6">My Skills</h3>
+            <h3 className="text-2xl font-semibold mt-16 mb-6">My Skills</h3>
             
             {loading ? (
               <div className="flex justify-center items-center py-12">
