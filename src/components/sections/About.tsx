@@ -112,7 +112,7 @@ const About = () => {
                 }`}
               >
                 {Object.entries(skillsByCategory).map(([category, categorySkills], index) => (
-                  <div key={category} className="mb-8">
+                  <div key={category} className="mb-8 p-10 bg-white/10 shadow-[0_8px_32px_0_rgba(255,255,255,0.07)] backdrop-blur-sm rounded-xl border border-white/18">
                     <h4 className="text-xl font-medium mb-4">{category}</h4>
                     <div>
                       {categorySkills.map((skill, skillIndex) => {
