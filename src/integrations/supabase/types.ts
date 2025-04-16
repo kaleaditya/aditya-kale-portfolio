@@ -9,6 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      about: {
+        Row: {
+          awards: string | null
+          bio: string
+          created_at: string
+          education: string
+          experience_years: number
+          id: string
+          is_active: boolean
+          project_count: number
+          subtitle: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          awards?: string | null
+          bio: string
+          created_at?: string
+          education: string
+          experience_years?: number
+          id?: string
+          is_active?: boolean
+          project_count?: number
+          subtitle: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          awards?: string | null
+          bio?: string
+          created_at?: string
+          education?: string
+          experience_years?: number
+          id?: string
+          is_active?: boolean
+          project_count?: number
+          subtitle?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          enable_contact_form: boolean
+          id: string
+          notification_email: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          enable_contact_form?: boolean
+          id?: string
+          notification_email?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          enable_contact_form?: boolean
+          id?: string
+          notification_email?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       experiences: {
         Row: {
           company: string
@@ -90,6 +165,36 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          read: boolean
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          read?: boolean
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          read?: boolean
+          subject?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           created_at: string
@@ -146,6 +251,36 @@ export type Database = {
           file_path?: string
           id?: string
           is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          level: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          level: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          level?: number
+          name?: string
           updated_at?: string
         }
         Relationships: []

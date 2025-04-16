@@ -33,7 +33,7 @@ export const SkillDeleteDialog = ({ open, onOpenChange, skill, loading, onDelete
         </p>
         
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
           <Button 

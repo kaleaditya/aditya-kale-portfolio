@@ -4,6 +4,7 @@ import { useInView } from '@/hooks/useInView';
 import SkillBar from '@/components/ui/SkillBar';
 import { Tally5, GraduationCap, Award, Briefcase, Loader2 } from 'lucide-react';
 import { useSkills, Skill } from '@/hooks/useSkills';
+import { useAbout, AboutData } from '@/hooks/useAbout';
 
 const About = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
@@ -11,15 +12,19 @@ const About = () => {
   const [skillsByCategory, setSkillsByCategory] = useState<Record<string, Skill[]>>({});
   const [loading, setLoading] = useState(true);
   const { skills, fetchSkills } = useSkills();
+  const { aboutData, fetchActiveAbout } = useAbout();
   
   useEffect(() => {
-    const loadSkills = async () => {
+    const loadData = async () => {
       setLoading(true);
-      await fetchSkills();
+      await Promise.all([
+        fetchSkills(),
+        fetchActiveAbout()
+      ]);
       setLoading(false);
     };
     
-    loadSkills();
+    loadData();
   }, []);
   
   useEffect(() => {
@@ -39,10 +44,10 @@ const About = () => {
     <section id="about" ref={aboutRef} className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">About Me</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{aboutData?.title || 'About Me'}</h2>
           <div className="w-16 h-1 bg-primary mx-auto mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            I'm a passionate developer specializing in building exceptional digital experiences. My current focus is on building accessible, responsive web applications.
+            {aboutData?.subtitle || 'Web Developer & Designer'}
           </p>
         </div>
         
@@ -52,13 +57,8 @@ const About = () => {
             
             <div className="prose prose-lg">
               <p>
-                I started my journey as a web developer over 5 years ago. Since then, I've continued to grow and evolve as a developer, taking on various challenges and learning new technologies along the way.
-              </p>
-              <p className="mt-4">
-                I'm quietly confident, naturally curious, and perpetually working on improving my skills one problem at a time. I design and develop sites that are responsive, accessible, user-friendly, and aesthetically pleasing.
-              </p>
-              <p className="mt-4">
-                When I'm not coding, you can find me exploring new technologies, writing technical articles, or enjoying outdoor activities.
+                {aboutData?.bio || 
+                  'I started my journey as a web developer over 5 years ago. Since then, I\'ve continued to grow and evolve as a developer, taking on various challenges and learning new technologies along the way.'}
               </p>
             </div>
             
@@ -68,7 +68,7 @@ const About = () => {
                   <GraduationCap size={24} />
                 </div>
                 <h4 className="text-xl font-semibold">Education</h4>
-                <p className="text-muted-foreground mt-2">Master's Degree in Computer Science</p>
+                <p className="text-muted-foreground mt-2">{aboutData?.education || 'Master\'s Degree in Computer Science'}</p>
               </div>
               
               <div className="bg-card p-4 rounded-lg border border-border text-center">
@@ -76,7 +76,7 @@ const About = () => {
                   <Tally5 size={24} />
                 </div>
                 <h4 className="text-xl font-semibold">Experience</h4>
-                <p className="text-muted-foreground mt-2">5+ Years in Web Development</p>
+                <p className="text-muted-foreground mt-2">{aboutData?.experience_years || 5}+ Years in Web Development</p>
               </div>
               
               <div className="bg-card p-4 rounded-lg border border-border text-center">
@@ -84,7 +84,7 @@ const About = () => {
                   <Award size={24} />
                 </div>
                 <h4 className="text-xl font-semibold">Awards</h4>
-                <p className="text-muted-foreground mt-2">Best Web Design 2023</p>
+                <p className="text-muted-foreground mt-2">{aboutData?.awards || 'Best Web Design 2023'}</p>
               </div>
               
               <div className="bg-card p-4 rounded-lg border border-border text-center">
@@ -92,7 +92,7 @@ const About = () => {
                   <Briefcase size={24} />
                 </div>
                 <h4 className="text-xl font-semibold">Projects</h4>
-                <p className="text-muted-foreground mt-2">50+ Complete Projects</p>
+                <p className="text-muted-foreground mt-2">{aboutData?.project_count || 50}+ Complete Projects</p>
               </div>
             </div>
           </div>

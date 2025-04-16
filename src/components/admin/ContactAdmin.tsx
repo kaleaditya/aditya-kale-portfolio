@@ -1,73 +1,55 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Mail, Phone, MapPin, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-
-// Sample message type
-interface Message {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  date: string;
-  read: boolean;
-}
-
-// Mock data
-const sampleMessages: Message[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    subject: 'Project Inquiry',
-    message: 'Hi there, I\'m interested in working with you on a new project. Can we schedule a call to discuss the details?',
-    date: '2023-08-15',
-    read: true,
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    subject: 'Collaboration Opportunity',
-    message: 'Hello! I saw your portfolio and I\'m impressed with your work. I think we could collaborate on an upcoming project.',
-    date: '2023-08-10',
-    read: false,
-  },
-  {
-    id: '3',
-    name: 'Michael Brown',
-    email: 'michael@example.com',
-    subject: 'Question about your services',
-    message: 'I\'m looking for a developer who can help with a React application. Do you have experience with large-scale applications?',
-    date: '2023-08-05',
-    read: false,
-  },
-];
+import { useContact, Message } from '@/hooks/useContact';
 
 const ContactAdmin = () => {
+  const { 
+    contact, 
+    messages, 
+    loading, 
+    fetchContact, 
+    updateContact, 
+    fetchMessages, 
+    markMessageAsRead, 
+    deleteMessage 
+  } = useContact();
+  
   const [contactInfo, setContactInfo] = useState({
     email: 'contact@example.com',
     phone: '+1 (555) 123-4567',
     address: 'San Francisco, CA',
-    enableContactForm: true,
-    notificationEmail: 'notifications@example.com',
+    enable_contact_form: true,
+    notification_email: 'notifications@example.com',
   });
   
-  const [messages, setMessages] = useState<Message[]>(sampleMessages);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      const contactData = await fetchContact();
+      await fetchMessages();
+      
+      if (contactData) {
+        setContactInfo({
+          email: contactData.email,
+          phone: contactData.phone || '',
+          address: contactData.address || '',
+          enable_contact_form: contactData.enable_contact_form,
+          notification_email: contactData.notification_email || '',
+        });
+      }
+      
+      setIsLoading(false);
+    };
+    
+    loadData();
+  }, []);
   
   const updateContactInfo = (field: string, value: string | boolean) => {
     setContactInfo({
@@ -76,32 +58,41 @@ const ContactAdmin = () => {
     });
   };
   
-  const markAsRead = (id: string) => {
-    setMessages(messages.map(msg => 
-      msg.id === id ? { ...msg, read: true } : msg
-    ));
+  const viewMessage = (message: Message) => {
+    setSelectedMessage(message);
+    if (!message.read) {
+      markMessageAsRead(message.id);
+    }
   };
   
-  const deleteMessage = (id: string) => {
-    setMessages(messages.filter(msg => msg.id !== id));
+  const handleDeleteMessage = (id: string) => {
+    deleteMessage(id);
     if (selectedMessage?.id === id) {
       setSelectedMessage(null);
     }
   };
   
-  const viewMessage = (message: Message) => {
-    setSelectedMessage(message);
-    if (!message.read) {
-      markAsRead(message.id);
-    }
-  };
-  
-  const saveChanges = () => {
-    console.log('Saving contact settings:', contactInfo);
-    alert('Contact settings updated successfully!');
+  const saveChanges = async () => {
+    setIsLoading(true);
+    await updateContact({
+      email: contactInfo.email,
+      phone: contactInfo.phone || null,
+      address: contactInfo.address || null,
+      enable_contact_form: contactInfo.enable_contact_form,
+      notification_email: contactInfo.notification_email || null,
+    });
+    setIsLoading(false);
   };
   
   const unreadCount = messages.filter(msg => !msg.read).length;
+  
+  if (isLoading && !contact && messages.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-8">
@@ -170,8 +161,8 @@ const ContactAdmin = () => {
                   <p className="text-sm text-muted-foreground">Allow visitors to contact you via form</p>
                 </div>
                 <Switch 
-                  checked={contactInfo.enableContactForm}
-                  onCheckedChange={(checked) => updateContactInfo('enableContactForm', checked)}
+                  checked={contactInfo.enable_contact_form}
+                  onCheckedChange={(checked) => updateContactInfo('enable_contact_form', checked)}
                 />
               </div>
               
@@ -179,8 +170,8 @@ const ContactAdmin = () => {
                 <Label htmlFor="notification-email">Notification Email</Label>
                 <Input 
                   id="notification-email" 
-                  value={contactInfo.notificationEmail}
-                  onChange={(e) => updateContactInfo('notificationEmail', e.target.value)}
+                  value={contactInfo.notification_email}
+                  onChange={(e) => updateContactInfo('notification_email', e.target.value)}
                   placeholder="Where to receive notifications"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -238,7 +229,7 @@ const ContactAdmin = () => {
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:bg-destructive/10"
-                      onClick={() => deleteMessage(selectedMessage.id)}
+                      onClick={() => handleDeleteMessage(selectedMessage.id)}
                     >
                       <Trash size={16} />
                     </Button>

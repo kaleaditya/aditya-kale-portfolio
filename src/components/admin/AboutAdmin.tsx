@@ -1,66 +1,123 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Plus, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-
-// Sample skill type
-interface Skill {
-  id: string;
-  name: string;
-  proficiency: number;
-}
+import { useAbout, AboutData } from '@/hooks/useAbout';
+import { useSkills, Skill } from '@/hooks/useSkills';
+import { toast } from '@/hooks/use-toast';
 
 const AboutAdmin = () => {
-  const [title, setTitle] = useState('About Me');
-  const [subtitle, setSubtitle] = useState('Web Developer & Designer');
-  const [bio, setBio] = useState(
-    'I am a passionate web developer with expertise in React, Node.js, and UI/UX design. With over 5 years of experience building modern web applications, I focus on creating responsive, accessible, and performant user experiences.'
-  );
+  const { aboutData, loading: aboutLoading, fetchActiveAbout, createAbout, updateAbout } = useAbout();
+  const { skills, fetchSkills } = useSkills();
+  const [loading, setLoading] = useState(true);
   
-  const [skills, setSkills] = useState<Skill[]>([
-    { id: '1', name: 'React', proficiency: 90 },
-    { id: '2', name: 'TypeScript', proficiency: 85 },
-    { id: '3', name: 'UI/UX Design', proficiency: 80 },
-    { id: '4', name: 'Node.js', proficiency: 75 },
-  ]);
+  const [formData, setFormData] = useState<Partial<AboutData>>({
+    title: 'About Me',
+    subtitle: 'Web Developer & Designer',
+    bio: 'I am a passionate web developer with expertise in React, Node.js, and UI/UX design. With over 5 years of experience building modern web applications, I focus on creating responsive, accessible, and performant user experiences.',
+    education: 'Master\'s Degree in Computer Science',
+    experience_years: 5,
+    awards: 'Best Web Design 2023',
+    project_count: 50,
+    is_active: true
+  });
   
-  const [newSkill, setNewSkill] = useState({ name: '', proficiency: 75 });
+  const [skillsByCategory, setSkillsByCategory] = useState<Record<string, Skill[]>>({});
   
-  const handleSkillChange = (id: string, field: keyof Skill, value: string | number) => {
-    setSkills(skills.map(skill => 
-      skill.id === id ? { ...skill, [field]: value } : skill
-    ));
-  };
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const aboutData = await fetchActiveAbout();
+      await fetchSkills();
+      
+      if (aboutData) {
+        setFormData({
+          title: aboutData.title,
+          subtitle: aboutData.subtitle,
+          bio: aboutData.bio,
+          education: aboutData.education,
+          experience_years: aboutData.experience_years,
+          awards: aboutData.awards || '',
+          project_count: aboutData.project_count,
+          is_active: aboutData.is_active
+        });
+      }
+      
+      setLoading(false);
+    };
+    
+    loadData();
+  }, []);
   
-  const addSkill = () => {
-    if (newSkill.name.trim()) {
-      setSkills([
-        ...skills, 
-        { ...newSkill, id: Date.now().toString() }
-      ]);
-      setNewSkill({ name: '', proficiency: 75 });
+  useEffect(() => {
+    // Group skills by category
+    const grouped = skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, Skill[]>);
+    
+    setSkillsByCategory(grouped);
+  }, [skills]);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    // Convert numeric values
+    if (name === 'experience_years' || name === 'project_count') {
+      setFormData({
+        ...formData,
+        [name]: parseInt(value) || 0
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
     }
   };
   
-  const removeSkill = (id: string) => {
-    setSkills(skills.filter(skill => skill.id !== id));
+  const saveChanges = async () => {
+    if (!formData.title || !formData.subtitle || !formData.bio || !formData.education) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      if (aboutData) {
+        await updateAbout(aboutData.id, formData);
+      } else {
+        await createAbout(formData as Omit<AboutData, 'id' | 'created_at' | 'updated_at'>);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
   
-  const saveChanges = () => {
-    // Here we would save to a database or local storage
-    console.log('Saving changes:', { title, subtitle, bio, skills });
-    // Show success message
-    alert('Changes saved successfully!');
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">About Section</h1>
-        <Button onClick={saveChanges} className="flex items-center gap-2">
+        <Button onClick={saveChanges} className="flex items-center gap-2" disabled={loading}>
           <Save size={16} />
           <span>Save Changes</span>
         </Button>
@@ -75,8 +132,9 @@ const AboutAdmin = () => {
               <Label htmlFor="title">Heading</Label>
               <Input 
                 id="title" 
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                name="title"
+                value={formData.title || ''}
+                onChange={handleInputChange}
                 placeholder="About Me"
               />
             </div>
@@ -85,8 +143,9 @@ const AboutAdmin = () => {
               <Label htmlFor="subtitle">Subtitle</Label>
               <Input 
                 id="subtitle" 
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
+                name="subtitle"
+                value={formData.subtitle || ''}
+                onChange={handleInputChange}
                 placeholder="Your title or role"
               />
             </div>
@@ -96,92 +155,101 @@ const AboutAdmin = () => {
             <Label htmlFor="bio">Bio</Label>
             <Textarea 
               id="bio" 
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              name="bio"
+              value={formData.bio || ''}
+              onChange={handleInputChange}
               placeholder="Write something about yourself..."
               rows={6}
             />
           </div>
+          
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="education">Education</Label>
+              <Input 
+                id="education" 
+                name="education"
+                value={formData.education || ''}
+                onChange={handleInputChange}
+                placeholder="Your education"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="experience_years">Years of Experience</Label>
+              <Input 
+                id="experience_years" 
+                name="experience_years"
+                type="number"
+                value={formData.experience_years || 0}
+                onChange={handleInputChange}
+                min={0}
+              />
+            </div>
+          </div>
+          
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="awards">Awards (optional)</Label>
+              <Input 
+                id="awards" 
+                name="awards"
+                value={formData.awards || ''}
+                onChange={handleInputChange}
+                placeholder="Your awards"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project_count">Project Count</Label>
+              <Input 
+                id="project_count" 
+                name="project_count"
+                type="number"
+                value={formData.project_count || 0}
+                onChange={handleInputChange}
+                min={0}
+              />
+            </div>
+          </div>
         </div>
         
         <div className="space-y-4 p-6 bg-card rounded-lg border border-border">
-          <h2 className="text-xl font-semibold">Skills</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Skills</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/admin/skills'}
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} />
+              Manage Skills
+            </Button>
+          </div>
           
           <div className="space-y-4">
-            {skills.map((skill) => (
-              <div key={skill.id} className="grid gap-4 sm:grid-cols-[1fr,auto,auto]">
-                <div className="space-y-2">
-                  <Label htmlFor={`skill-name-${skill.id}`}>Skill Name</Label>
-                  <Input 
-                    id={`skill-name-${skill.id}`}
-                    value={skill.name}
-                    onChange={(e) => handleSkillChange(skill.id, 'name', e.target.value)}
-                    placeholder="Skill name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`skill-proficiency-${skill.id}`}>Proficiency %</Label>
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      id={`skill-proficiency-${skill.id}`}
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={skill.proficiency}
-                      onChange={(e) => handleSkillChange(skill.id, 'proficiency', parseInt(e.target.value) || 0)}
-                    />
-                    <span className="text-muted-foreground">{skill.proficiency}%</span>
+            {Object.entries(skillsByCategory).length > 0 ? (
+              Object.entries(skillsByCategory).map(([category, skills]) => (
+                <div key={category} className="space-y-2">
+                  <h3 className="text-lg font-medium">{category}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill) => (
+                      <div 
+                        key={skill.id}
+                        className="px-3 py-2 bg-secondary rounded-md flex items-center gap-2"
+                      >
+                        <span>{skill.name}</span>
+                        <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                          {skill.level}%
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                <div className="flex items-end">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={() => removeSkill(skill.id)}
-                  >
-                    <Trash size={16} />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
-            <div className="grid gap-4 sm:grid-cols-[1fr,auto,auto] border-t border-border pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-skill-name">New Skill</Label>
-                <Input 
-                  id="new-skill-name"
-                  value={newSkill.name}
-                  onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                  placeholder="Add a new skill"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="new-skill-proficiency">Proficiency %</Label>
-                <Input 
-                  id="new-skill-proficiency"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={newSkill.proficiency}
-                  onChange={(e) => setNewSkill({ ...newSkill, proficiency: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              
-              <div className="flex items-end">
-                <Button 
-                  variant="outline"
-                  className="flex items-center gap-1"
-                  onClick={addSkill}
-                >
-                  <Plus size={16} />
-                  Add
-                </Button>
-              </div>
-            </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">No skills added yet. Go to the Skills section to add skills.</p>
+            )}
           </div>
         </div>
       </div>
