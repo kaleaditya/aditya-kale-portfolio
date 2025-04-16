@@ -10,7 +10,8 @@ import {
   Share2,
   FileText,
   Briefcase,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
 const StatusCard = ({ title, value, color }: { title: string; value: string; color: string }) => (
@@ -63,7 +64,7 @@ const AdminDashboard = () => {
         <StatusCard title="Total Projects" value="12" color="text-accent-teal" />
         <StatusCard title="Experiences" value="4" color="text-accent-coral" />
         <StatusCard title="Social Links" value="5" color="text-accent-purple" />
-        <StatusCard title="Contact Messages" value="24" color="text-primary" />
+        <StatusCard title="Skills" value="8" color="text-primary" />
       </div>
       
       <div>
@@ -86,6 +87,12 @@ const AdminDashboard = () => {
             title="Resume"
             description="Upload and manage your resume"
             path="/admin/resume"
+          />
+          <QuickAccessCard
+            icon={<Sparkles size={24} />}
+            title="Skills"
+            description="Manage your technical and professional skills"
+            path="/admin/skills"
           />
           <QuickAccessCard
             icon={<User size={24} />}

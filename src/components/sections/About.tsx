@@ -1,194 +1,151 @@
-import React, { useRef } from 'react';
-import { useInView } from '@/hooks/useInView';
-import { Calendar, GraduationCap, Briefcase, Download } from 'lucide-react';
-import SkillBar from '../ui/SkillBar';
-import AnimatedButton from '../ui/AnimatedButton';
-import AnimatedText from '../ui/AnimatedText';
 
-const About: React.FC = () => {
+import React, { useRef, useEffect, useState } from 'react';
+import { useInView } from '@/hooks/useInView';
+import SkillBar from '@/components/ui/SkillBar';
+import { Tally5, GraduationCap, Award, Briefcase, Loader2 } from 'lucide-react';
+import { useSkills, Skill } from '@/hooks/useSkills';
+
+const About = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(aboutRef, { threshold: 0.1, once: true });
-
-  const skills = [
-    { name: 'React', percentage: 95 },
-    { name: 'React Native', percentage: 90 },
-    { name: 'JavaScript', percentage: 92 },
-    { name: 'TypeScript', percentage: 85 },
-    { name: 'HTML/CSS', percentage: 95 },
-    { name: 'Redux', percentage: 88 },
-    { name: 'Node.js', percentage: 75 },
-    { name: 'UI/UX Design', percentage: 80 },
-  ];
-
-  const experiences = [
-    {
-      title: 'Senior React Developer',
-      company: 'Tech Innovations Inc.',
-      period: '2020 - Present',
-      description: 'Led frontend development for enterprise applications using React and TypeScript.',
-      icon: <Briefcase className="h-5 w-5" />,
-    },
-    {
-      title: 'React Native Developer',
-      company: 'Mobile Solutions Ltd.',
-      period: '2018 - 2020',
-      description: 'Developed cross-platform mobile applications using React Native and Redux.',
-      icon: <Briefcase className="h-5 w-5" />,
-    },
-    {
-      title: 'Frontend Developer',
-      company: 'Web Creators Co.',
-      period: '2016 - 2018',
-      description: 'Built responsive websites and web applications using modern JavaScript frameworks.',
-      icon: <Briefcase className="h-5 w-5" />,
-    },
-  ];
-
-  const education = [
-    {
-      degree: 'MSc in Computer Science',
-      institution: 'Tech University',
-      period: '2014 - 2016',
-      description: 'Specialized in Human-Computer Interaction and Frontend Engineering.',
-      icon: <GraduationCap className="h-5 w-5" />,
-    },
-    {
-      degree: 'BSc in Software Engineering',
-      institution: 'Engineering College',
-      period: '2010 - 2014',
-      description: 'Focused on web technologies and user interface development.',
-      icon: <GraduationCap className="h-5 w-5" />,
-    },
-  ];
-
+  const [skillsByCategory, setSkillsByCategory] = useState<Record<string, Skill[]>>({});
+  const [loading, setLoading] = useState(true);
+  const { skills, fetchSkills } = useSkills();
+  
+  useEffect(() => {
+    const loadSkills = async () => {
+      setLoading(true);
+      await fetchSkills();
+      setLoading(false);
+    };
+    
+    loadSkills();
+  }, []);
+  
+  useEffect(() => {
+    // Group skills by category
+    const grouped = skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, Skill[]>);
+    
+    setSkillsByCategory(grouped);
+  }, [skills]);
+  
   return (
-    <section id="about" ref={aboutRef} className="py-20 bg-secondary/30">
-      <div className="container mx-auto px-4 md:px-6">
+    <section id="about" ref={aboutRef} className="py-24 bg-background">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <AnimatedText
-            text="About Me"
-            as="h2"
-            animation="reveal"
-            className="text-3xl md:text-4xl font-bold mb-4"
-          />
-          <AnimatedText
-            text="I combine technical expertise with creative problem-solving to build exceptional user experiences."
-            as="p"
-            animation="fade"
-            delay={300}
-            className="text-muted-foreground max-w-2xl mx-auto"
-          />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">About Me</h2>
+          <div className="w-16 h-1 bg-primary mx-auto mb-6"></div>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            I'm a passionate developer specializing in building exceptional digital experiences. My current focus is on building accessible, responsive web applications.
+          </p>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-8">
-            <div 
-              className={`bg-background rounded-2xl p-8 shadow-sm border border-border transition-all duration-700 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <h3 className="text-2xl font-bold mb-4">My Story</h3>
-              <div className="space-y-4 text-muted-foreground">
-                <p>
-                  I'm a passionate frontend developer with over 5 years of experience
-                  creating beautiful, intuitive user interfaces. My journey began with
-                  a curiosity about how digital experiences shape our daily lives.
-                </p>
-                <p>
-                  Specializing in React and React Native, I've helped businesses transform
-                  their ideas into polished, user-friendly applications. I believe in
-                  writing clean, maintainable code and staying on top of emerging technologies.
-                </p>
-                <p>
-                  When I'm not coding, you'll find me sharing educational content on Instagram,
-                  contributing to open-source projects, or exploring new design trends.
-                </p>
-              </div>
-              
-              <div className="mt-6">
-                <AnimatedButton 
-                  onClick={() => window.open('/resume.pdf', '_blank')}
-                  variant="outline"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download CV
-                </AnimatedButton>
-              </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+          <div className="col-span-1 lg:col-span-2">
+            <h3 className="text-2xl font-semibold mb-6">About Me</h3>
+            
+            <div className="prose prose-lg">
+              <p>
+                I started my journey as a web developer over 5 years ago. Since then, I've continued to grow and evolve as a developer, taking on various challenges and learning new technologies along the way.
+              </p>
+              <p className="mt-4">
+                I'm quietly confident, naturally curious, and perpetually working on improving my skills one problem at a time. I design and develop sites that are responsive, accessible, user-friendly, and aesthetically pleasing.
+              </p>
+              <p className="mt-4">
+                When I'm not coding, you can find me exploring new technologies, writing technical articles, or enjoying outdoor activities.
+              </p>
             </div>
             
-            <div 
-              className={`bg-background rounded-2xl p-8 shadow-sm border border-border transition-all duration-700 delay-200 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <h3 className="text-2xl font-bold mb-6">Skills</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                {skills.map((skill, index) => (
-                  <SkillBar
-                    key={skill.name}
-                    name={skill.name}
-                    percentage={skill.percentage}
-                    delay={index * 100}
-                  />
-                ))}
+            <div className="grid grid-cols-2 gap-6 mt-8">
+              <div className="bg-card p-4 rounded-lg border border-border text-center">
+                <div className="bg-primary/10 text-primary p-2 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <GraduationCap size={24} />
+                </div>
+                <h4 className="text-xl font-semibold">Education</h4>
+                <p className="text-muted-foreground mt-2">Master's Degree in Computer Science</p>
+              </div>
+              
+              <div className="bg-card p-4 rounded-lg border border-border text-center">
+                <div className="bg-accent-teal/10 text-accent-teal p-2 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <Tally5 size={24} />
+                </div>
+                <h4 className="text-xl font-semibold">Experience</h4>
+                <p className="text-muted-foreground mt-2">5+ Years in Web Development</p>
+              </div>
+              
+              <div className="bg-card p-4 rounded-lg border border-border text-center">
+                <div className="bg-accent-purple/10 text-accent-purple p-2 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <Award size={24} />
+                </div>
+                <h4 className="text-xl font-semibold">Awards</h4>
+                <p className="text-muted-foreground mt-2">Best Web Design 2023</p>
+              </div>
+              
+              <div className="bg-card p-4 rounded-lg border border-border text-center">
+                <div className="bg-accent-coral/10 text-accent-coral p-2 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <Briefcase size={24} />
+                </div>
+                <h4 className="text-xl font-semibold">Projects</h4>
+                <p className="text-muted-foreground mt-2">50+ Complete Projects</p>
               </div>
             </div>
           </div>
           
-          <div 
-            className={`space-y-8 transition-all duration-700 delay-300 ${
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <div className="bg-background rounded-2xl p-8 shadow-sm border border-border">
-              <h3 className="text-2xl font-bold mb-6">Experience</h3>
-              <div className="space-y-6">
-                {experiences.map((exp, index) => (
-                  <div key={index} className="relative pl-8 pb-6 border-l border-border last:pb-0">
-                    <div className="absolute left-[-8px] top-0 bg-background p-1 border border-border rounded-full">
-                      {exp.icon}
-                    </div>
-                    <div className="mb-1 flex items-center">
-                      <h4 className="text-lg font-semibold">{exp.title}</h4>
-                    </div>
-                    <div className="text-sm text-primary mb-2 flex items-center">
-                      <span>{exp.company}</span>
-                      <span className="mx-2">•</span>
-                      <span className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {exp.period}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground">{exp.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="col-span-1 lg:col-span-3">
+            <h3 className="text-2xl font-semibold mb-6">My Skills</h3>
             
-            <div className="bg-background rounded-2xl p-8 shadow-sm border border-border">
-              <h3 className="text-2xl font-bold mb-6">Education</h3>
-              <div className="space-y-6">
-                {education.map((edu, index) => (
-                  <div key={index} className="relative pl-8 pb-6 border-l border-border last:pb-0">
-                    <div className="absolute left-[-8px] top-0 bg-background p-1 border border-border rounded-full">
-                      {edu.icon}
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+                <span>Loading skills...</span>
+              </div>
+            ) : (
+              <div 
+                className={`transition-opacity duration-1000 ${
+                  isInView ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                {Object.entries(skillsByCategory).map(([category, categorySkills], index) => (
+                  <div key={category} className="mb-8">
+                    <h4 className="text-xl font-medium mb-4">{category}</h4>
+                    <div>
+                      {categorySkills.map((skill, skillIndex) => {
+                        // Determine color based on category
+                        let color = 'bg-primary';
+                        switch (category) {
+                          case 'Frontend':
+                            color = 'bg-accent-purple';
+                            break;
+                          case 'Backend':
+                            color = 'bg-accent-teal';
+                            break;
+                          case 'Database':
+                            color = 'bg-accent-coral';
+                            break;
+                          // Add more categories and colors as needed
+                        }
+                        
+                        return (
+                          <SkillBar
+                            key={skill.id}
+                            name={skill.name}
+                            percentage={skill.level}
+                            color={color}
+                            delay={skillIndex * 100}
+                          />
+                        );
+                      })}
                     </div>
-                    <div className="mb-1">
-                      <h4 className="text-lg font-semibold">{edu.degree}</h4>
-                    </div>
-                    <div className="text-sm text-primary mb-2 flex items-center">
-                      <span>{edu.institution}</span>
-                      <span className="mx-2">•</span>
-                      <span className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {edu.period}
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground">{edu.description}</p>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
