@@ -66,9 +66,14 @@ export const useContact = () => {
       
       // If there's no contact data yet, create one
       if (!contact) {
+        // Make sure the email field exists when creating a new contact
+        if (!updates.email) {
+          throw new Error("Email is required for contact information");
+        }
+        
         const { data, error } = await supabase
           .from('contact')
-          .insert([updates])
+          .insert(updates)
           .select();
         
         if (error) throw error;

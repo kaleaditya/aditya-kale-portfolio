@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, Mail, Phone, MapPin, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -211,7 +212,7 @@ const ContactAdmin = () => {
                           {message.name}
                         </h3>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(message.date).toLocaleDateString()}
+                          {new Date(message.created_at).toLocaleDateString()}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{message.subject}</p>
@@ -237,7 +238,7 @@ const ContactAdmin = () => {
                   
                   <div className="mt-4 text-sm text-muted-foreground">
                     <div><strong>From:</strong> {selectedMessage.name} ({selectedMessage.email})</div>
-                    <div><strong>Date:</strong> {new Date(selectedMessage.date).toLocaleDateString()}</div>
+                    <div><strong>Date:</strong> {new Date(selectedMessage.created_at).toLocaleDateString()}</div>
                   </div>
                   
                   <div className="mt-6 flex-1 overflow-y-auto">
