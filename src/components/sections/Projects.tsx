@@ -86,7 +86,7 @@ const Projects: React.FC = () => {
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <AnimatedText
-            text="My "
+            text="My  "
             as="h2"
             animation="reveal"
             className="text-3xl md:text-4xl font-bold mb-4"
