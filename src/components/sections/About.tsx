@@ -99,7 +99,7 @@ const About = () => {
             <div className="prose prose-lg max-w-none">
               <p className="text-balance text-muted-foreground">
                 {aboutData?.bio || 
-                  'Although highly skilled in numerous design disciplines I'm a dynamic and versatile designer with a proven track record and passion for creating innovative designs, regardless of the brief.'}
+                  "Although highly skilled in numerous design disciplines I'm a dynamic and versatile designer with a proven track record and passion for creating innovative designs, regardless of the brief."}
               </p>
             </div>
             
