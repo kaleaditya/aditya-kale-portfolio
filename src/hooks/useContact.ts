@@ -25,12 +25,12 @@ export interface Message {
 }
 
 export const useContact = () => {
-  const [contact, setContact] = useState<Contact | null>(null);
+  const [contactInfo, setContactInfo] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContact = async () => {
+  const fetchContactInfo = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -43,14 +43,14 @@ export const useContact = () => {
       
       if (error) throw error;
       
-      setContact(data);
+      setContactInfo(data);
       return data;
     } catch (err: any) {
-      console.error('Error fetching contact data:', err);
+      console.error('Error fetching contact info:', err);
       setError(err.message);
       toast({
         title: 'Error',
-        description: `Failed to load contact data: ${err.message}`,
+        description: `Failed to load contact info: ${err.message}`,
         variant: 'destructive',
       });
       return null;
@@ -59,56 +59,65 @@ export const useContact = () => {
     }
   };
 
-  const updateContact = async (updates: Partial<Omit<Contact, 'id' | 'created_at' | 'updated_at'>>) => {
+  const createContactInfo = async (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setLoading(true);
       setError(null);
       
-      // If there's no contact data yet, create one
-      if (!contact) {
-        // Make sure the email field exists when creating a new contact
-        if (!updates.email) {
-          throw new Error("Email is required for contact information");
-        }
-        
-        const { data, error } = await supabase
-          .from('contact')
-          .insert(updates)
-          .select();
-        
-        if (error) throw error;
-        
-        setContact(data[0]);
-        toast({
-          title: 'Success',
-          description: 'Contact information created successfully',
-        });
-        
-        return data[0];
-      } else {
-        // Update existing contact data
-        const { data, error } = await supabase
-          .from('contact')
-          .update(updates)
-          .eq('id', contact.id)
-          .select();
-        
-        if (error) throw error;
-        
-        setContact(data[0]);
-        toast({
-          title: 'Success',
-          description: 'Contact information updated successfully',
-        });
-        
-        return data[0];
-      }
+      const { data, error } = await supabase
+        .from('contact')
+        .insert(contact)
+        .select();
+      
+      if (error) throw error;
+      
+      setContactInfo(data[0]);
+      toast({
+        title: 'Success',
+        description: 'Contact info created successfully',
+      });
+      
+      return data[0];
     } catch (err: any) {
-      console.error('Error updating contact data:', err);
+      console.error('Error creating contact info:', err);
       setError(err.message);
       toast({
         title: 'Error',
-        description: `Failed to update contact information: ${err.message}`,
+        description: `Failed to create contact info: ${err.message}`,
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateContactInfo = async (id: string, updates: Partial<Omit<Contact, 'id' | 'created_at' | 'updated_at'>>) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase
+        .from('contact')
+        .update(updates)
+        .eq('id', id)
+        .select();
+      
+      if (error) throw error;
+      
+      setContactInfo(data[0]);
+      toast({
+        title: 'Success',
+        description: 'Contact info updated successfully',
+      });
+      
+      return data[0];
+    } catch (err: any) {
+      console.error('Error updating contact info:', err);
+      setError(err.message);
+      toast({
+        title: 'Error',
+        description: `Failed to update contact info: ${err.message}`,
         variant: 'destructive',
       });
       return null;
@@ -145,21 +154,24 @@ export const useContact = () => {
     }
   };
 
-  const submitMessage = async (message: Omit<Message, 'id' | 'read' | 'created_at'>) => {
+  const submitMessage = async (messageData: Omit<Message, 'id' | 'read' | 'created_at'>) => {
     try {
       setLoading(true);
       setError(null);
       
       const { data, error } = await supabase
         .from('messages')
-        .insert([message])
+        .insert({
+          ...messageData,
+          read: false
+        })
         .select();
       
       if (error) throw error;
       
       toast({
-        title: 'Message Sent',
-        description: 'Your message has been sent successfully!',
+        title: 'Success',
+        description: 'Message sent successfully',
       });
       
       return data[0];
@@ -177,27 +189,33 @@ export const useContact = () => {
     }
   };
 
-  const markMessageAsRead = async (id: string) => {
+  const markMessageAsRead = async (id: string, isRead: boolean = true) => {
     try {
       setLoading(true);
       setError(null);
       
       const { data, error } = await supabase
         .from('messages')
-        .update({ read: true })
+        .update({ read: isRead })
         .eq('id', id)
         .select();
       
       if (error) throw error;
       
-      setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, read: true } : msg));
+      setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, read: isRead } : msg));
+      
+      toast({
+        title: 'Success',
+        description: `Message marked as ${isRead ? 'read' : 'unread'}`,
+      });
+      
       return data[0];
     } catch (err: any) {
-      console.error('Error marking message as read:', err);
+      console.error('Error updating message:', err);
       setError(err.message);
       toast({
         title: 'Error',
-        description: `Failed to mark message as read: ${err.message}`,
+        description: `Failed to update message: ${err.message}`,
         variant: 'destructive',
       });
       return null;
@@ -219,6 +237,7 @@ export const useContact = () => {
       if (error) throw error;
       
       setMessages(prev => prev.filter(msg => msg.id !== id));
+      
       toast({
         title: 'Success',
         description: 'Message deleted successfully',
@@ -240,12 +259,13 @@ export const useContact = () => {
   };
 
   return {
-    contact,
+    contactInfo,
     messages,
     loading,
     error,
-    fetchContact,
-    updateContact,
+    fetchContactInfo,
+    createContactInfo,
+    updateContactInfo,
     fetchMessages,
     submitMessage,
     markMessageAsRead,
