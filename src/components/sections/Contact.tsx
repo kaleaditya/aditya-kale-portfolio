@@ -10,7 +10,7 @@ import { toast } from '@/hooks/use-toast';
 const Contact: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { threshold: 0.1, once: true });
-  const { contact, loading, fetchContact, submitMessage } = useContact();
+  const { contactInfo, loading, fetchContactInfo, submitMessage } = useContact();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,7 +20,7 @@ const Contact: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   
   useEffect(() => {
-    fetchContact();
+    fetchContactInfo();
   }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -95,7 +95,7 @@ const Contact: React.FC = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
                 <span>Loading contact form...</span>
               </div>
-            ) : contact && contact.enable_contact_form ? (
+            ) : contactInfo && contactInfo.enable_contact_form ? (
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -202,7 +202,7 @@ const Contact: React.FC = () => {
                   </div>
                   <div className="ml-4">
                     <h4 className="text-base font-medium">Location</h4>
-                    <p className="text-muted-foreground">{contact?.address || 'San Francisco, California'}</p>
+                    <p className="text-muted-foreground">{contactInfo?.address || 'San Francisco, California'}</p>
                   </div>
                 </div>
                 
@@ -212,21 +212,21 @@ const Contact: React.FC = () => {
                   </div>
                   <div className="ml-4">
                     <h4 className="text-base font-medium">Email</h4>
-                    <a href={`mailto:${contact?.email || 'hello@example.com'}`} className="text-muted-foreground hover:text-primary transition-colors">
-                      {contact?.email || 'hello@example.com'}
+                    <a href={`mailto:${contactInfo?.email || 'hello@example.com'}`} className="text-muted-foreground hover:text-primary transition-colors">
+                      {contactInfo?.email || 'hello@example.com'}
                     </a>
                   </div>
                 </div>
                 
-                {contact?.phone && (
+                {contactInfo?.phone && (
                   <div className="flex items-start">
                     <div className="flex-shrink-0 p-3 bg-primary/10 rounded-full text-primary">
                       <Phone size={20} />
                     </div>
                     <div className="ml-4">
                       <h4 className="text-base font-medium">Phone</h4>
-                      <a href={`tel:${contact.phone}`} className="text-muted-foreground hover:text-primary transition-colors">
-                        {contact.phone}
+                      <a href={`tel:${contactInfo.phone}`} className="text-muted-foreground hover:text-primary transition-colors">
+                        {contactInfo.phone}
                       </a>
                     </div>
                   </div>
@@ -241,7 +241,7 @@ const Contact: React.FC = () => {
                 <SocialIcon platform="linkedin" url="https://linkedin.com" />
                 <SocialIcon platform="twitter" url="https://twitter.com" />
                 <SocialIcon platform="instagram" url="https://instagram.com" />
-                <SocialIcon platform="email" url={`mailto:${contact?.email || 'hello@example.com'}`} />
+                <SocialIcon platform="email" url={`mailto:${contactInfo?.email || 'hello@example.com'}`} />
               </div>
             </div>
           </div>
