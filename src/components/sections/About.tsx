@@ -1,21 +1,20 @@
-
 import React, { useRef, useEffect, useState } from 'react';
-import { useInView } from '@/hooks/useInView';
+import { useInView as useInViewHook } from '@/hooks/useInView';
 import SkillBar from '@/components/ui/SkillBar';
 import CircleProgressBar from '@/components/ui/CircleProgressBar';
 import { Tally5, GraduationCap, Award, Briefcase, Loader2 } from 'lucide-react';
-import { useSkills, Skill } from '@/hooks/useSkills';
-import { useAbout, AboutData } from '@/hooks/useAbout';
+import { useSkills as fetchSkillsHook, Skill } from '@/hooks/useSkills';
+import { useAbout as useAboutHook, AboutData } from '@/hooks/useAbout';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const About = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(aboutRef, { threshold: 0.1, once: true });
+  const isInView = useInViewHook(aboutRef, { threshold: 0.1, once: true });
   const [skillsByCategory, setSkillsByCategory] = useState<Record<string, Skill[]>>({});
   const [loading, setLoading] = useState(true);
-  const { skills, fetchSkills } = useSkills();
-  const { aboutData, fetchActiveAbout } = useAbout();
+  const { skills, fetchSkills } = fetchSkillsHook();
+  const { aboutData, fetchActiveAbout } = useAboutHook();
   
   useEffect(() => {
     const loadData = async () => {
@@ -217,3 +216,32 @@ const About = () => {
 };
 
 export default About;
+
+// Correct export in useInView.js
+export function useInView(ref: React.RefObject<HTMLElement>, options: IntersectionObserverInit): boolean {
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsInView(entry.isIntersecting);
+    }, options);
+
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, [ref, options]);
+
+  return isInView;
+}
+
+// Correct export in useSkills.js
+export function useSkills() {
+  // Implementation
+}
+
+// Correct export in useAbout.js
+export function useAbout() {
+  // Implementation
+}
