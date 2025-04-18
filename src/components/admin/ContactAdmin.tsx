@@ -9,17 +9,17 @@ import { useContact, Message } from '@/hooks/useContact';
 
 const ContactAdmin = () => {
   const { 
-    contact, 
+    contactInfo, 
     messages, 
     loading, 
-    fetchContact, 
-    updateContact, 
+    fetchContactInfo, 
+    updateContactInfo, 
     fetchMessages, 
     markMessageAsRead, 
     deleteMessage 
   } = useContact();
   
-  const [contactInfo, setContactInfo] = useState({
+  const [contactData, setContactData] = useState({
     email: 'contact@example.com',
     phone: '+1 (555) 123-4567',
     address: 'San Francisco, CA',
@@ -33,11 +33,11 @@ const ContactAdmin = () => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      const contactData = await fetchContact();
+      const contactData = await fetchContactInfo();
       await fetchMessages();
       
       if (contactData) {
-        setContactInfo({
+        setContactData({
           email: contactData.email,
           phone: contactData.phone || '',
           address: contactData.address || '',
@@ -52,9 +52,9 @@ const ContactAdmin = () => {
     loadData();
   }, []);
   
-  const updateContactInfo = (field: string, value: string | boolean) => {
-    setContactInfo({
-      ...contactInfo,
+  const updateContactField = (field: string, value: string | boolean) => {
+    setContactData({
+      ...contactData,
       [field]: value
     });
   };
@@ -75,19 +75,21 @@ const ContactAdmin = () => {
   
   const saveChanges = async () => {
     setIsLoading(true);
-    await updateContact({
-      email: contactInfo.email,
-      phone: contactInfo.phone || null,
-      address: contactInfo.address || null,
-      enable_contact_form: contactInfo.enable_contact_form,
-      notification_email: contactInfo.notification_email || null,
-    });
+    if (contactInfo) {
+      await updateContactInfo(contactInfo.id, {
+        email: contactData.email,
+        phone: contactData.phone || null,
+        address: contactData.address || null,
+        enable_contact_form: contactData.enable_contact_form,
+        notification_email: contactData.notification_email || null,
+      });
+    }
     setIsLoading(false);
   };
   
   const unreadCount = messages.filter(msg => !msg.read).length;
   
-  if (isLoading && !contact && messages.length === 0) {
+  if (isLoading && !contactInfo && messages.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <p className="text-muted-foreground">Loading...</p>
@@ -117,8 +119,8 @@ const ContactAdmin = () => {
                   <Label htmlFor="email">Email Address</Label>
                   <Input 
                     id="email" 
-                    value={contactInfo.email}
-                    onChange={(e) => updateContactInfo('email', e.target.value)}
+                    value={contactData.email}
+                    onChange={(e) => updateContactField('email', e.target.value)}
                     placeholder="your@email.com"
                   />
                 </div>
@@ -130,8 +132,8 @@ const ContactAdmin = () => {
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input 
                     id="phone" 
-                    value={contactInfo.phone}
-                    onChange={(e) => updateContactInfo('phone', e.target.value)}
+                    value={contactData.phone}
+                    onChange={(e) => updateContactField('phone', e.target.value)}
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -143,8 +145,8 @@ const ContactAdmin = () => {
                   <Label htmlFor="address">Location/Address</Label>
                   <Input 
                     id="address" 
-                    value={contactInfo.address}
-                    onChange={(e) => updateContactInfo('address', e.target.value)}
+                    value={contactData.address}
+                    onChange={(e) => updateContactField('address', e.target.value)}
                     placeholder="City, Country"
                   />
                 </div>
@@ -162,8 +164,8 @@ const ContactAdmin = () => {
                   <p className="text-sm text-muted-foreground">Allow visitors to contact you via form</p>
                 </div>
                 <Switch 
-                  checked={contactInfo.enable_contact_form}
-                  onCheckedChange={(checked) => updateContactInfo('enable_contact_form', checked)}
+                  checked={contactData.enable_contact_form}
+                  onCheckedChange={(checked) => updateContactField('enable_contact_form', checked)}
                 />
               </div>
               
@@ -171,8 +173,8 @@ const ContactAdmin = () => {
                 <Label htmlFor="notification-email">Notification Email</Label>
                 <Input 
                   id="notification-email" 
-                  value={contactInfo.notification_email}
-                  onChange={(e) => updateContactInfo('notification_email', e.target.value)}
+                  value={contactData.notification_email}
+                  onChange={(e) => updateContactField('notification_email', e.target.value)}
                   placeholder="Where to receive notifications"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
