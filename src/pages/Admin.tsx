@@ -21,7 +21,7 @@ const useAuth = () => {
 
   const login = (password: string) => {
     // Simple password check (replace with proper auth)
-    if (password === 'admin123') {
+    if (password === 'Adityakale19') {
       localStorage.setItem('adminAuthenticated', 'true');
       setIsAuthenticated(true);
       return true;

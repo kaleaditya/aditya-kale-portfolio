@@ -97,6 +97,7 @@ export const useContact = () => {
       setLoading(true);
       setError(null);
       
+      // debugger
       const { data, error } = await supabase
         .from('contact')
         .update(updates)
@@ -272,3 +273,4 @@ export const useContact = () => {
     deleteMessage
   };
 };
+  

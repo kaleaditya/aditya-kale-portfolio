@@ -16,9 +16,9 @@ const Index = () => {
   const aboutRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
-  const [resume, setResume] = useState<{fileName: string, url: string} | null>(null);
+  const [resume, setResume] = useState<{ fileName: string, url: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Fetch active resume from Supabase
   useEffect(() => {
     const fetchResume = async () => {
@@ -29,7 +29,7 @@ const Index = () => {
           .select('*')
           .eq('is_active', true)
           .maybeSingle();
-        
+
         if (error) {
           console.error("Error fetching resume:", error);
           setResume(null);
@@ -48,14 +48,14 @@ const Index = () => {
         setLoading(false);
       }
     };
-    
+
     fetchResume();
   }, []);
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       {!loading && resume && (
         <div className="fixed bottom-6 right-6 z-50">
           <Button asChild className="shadow-lg flex items-center gap-2">
@@ -66,7 +66,7 @@ const Index = () => {
           </Button>
         </div>
       )}
-      
+
       {loading && (
         <div className="fixed bottom-6 right-6 z-50">
           <Button disabled className="shadow-lg flex items-center gap-2">
@@ -75,7 +75,7 @@ const Index = () => {
           </Button>
         </div>
       )}
-      
+
       <main>
         <Hero />
         <About />
@@ -84,7 +84,9 @@ const Index = () => {
         <Github />
         <Contact />
       </main>
+
       
+
       <Footer />
     </div>
   );

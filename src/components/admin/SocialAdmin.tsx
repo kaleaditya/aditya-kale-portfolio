@@ -10,6 +10,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useSocialLinks, SocialLink } from '@/hooks/useSocialLinks';
+import { supabase } from '@/integrations/supabase/client';
 
 // Sortable item component
 const SortableItem = ({ link, updateSocialLink, removeSocialLink }: {
@@ -139,12 +140,62 @@ const SocialAdmin = () => {
     await deleteSocialLink(id);
   };
   
-  const saveChanges = () => {
-    // This is now automatically saved on each update
-    toast({
-      title: "Changes saved",
-      description: "All changes are automatically saved",
-    });
+  const saveChanges = async () => {
+    try {
+     
+  
+      // Insert the new social link using the newLink state
+      const insertedLink = await insertSocialLink();
+  
+      if (insertedLink) {
+        toast({
+          title: 'Success',
+          description: 'Social link added successfully',
+        });
+      }
+    } catch (err: any) {
+      console.error('Error saving changes:', err);
+      // setError(err.message);
+      toast({
+        title: 'Error',
+        description: `Failed to save changes: ${err.message}`,
+        variant: 'destructive',
+      });
+    } finally {
+      // setLoading(false);
+    }
+  };
+  
+  const insertSocialLink = async () => {
+    try {
+      // Use newLink directly from state
+      if (!newLink.platform.trim() || !newLink.url.trim()) {
+        throw new Error('Platform and URL are required');
+      }
+  
+      const { data, error } = await supabase
+        .from('social_links')
+        .insert({
+          platform: newLink.platform,
+          url: newLink.url,
+          enabled: newLink.enabled,
+        })
+        .select();
+  
+      if (error) throw error;
+  
+      // // Update socialLinks state with the new link
+      // setSocialLinks((prev) => [...prev, data[0]]);
+  
+      // // Reset newLink state after successful insertion
+      // setNewLink({ platform: '', url: '', enabled: true });
+  
+      return data[0];
+    } catch (err: any) {
+      console.error('Error adding social link:', err);
+      
+      return null;
+    }
   };
   
   const handleDragEnd = async (event: DragEndEvent) => {

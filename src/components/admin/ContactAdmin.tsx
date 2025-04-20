@@ -74,8 +74,8 @@ const ContactAdmin = () => {
   };
   
   const saveChanges = async () => {
+    // debugger
     setIsLoading(true);
-    if (contactInfo) {
       await updateContactInfo(contactInfo.id, {
         email: contactData.email,
         phone: contactData.phone || null,
@@ -83,8 +83,8 @@ const ContactAdmin = () => {
         enable_contact_form: contactData.enable_contact_form,
         notification_email: contactData.notification_email || null,
       });
-    }
     setIsLoading(false);
+
   };
   
   const unreadCount = messages.filter(msg => !msg.read).length;
