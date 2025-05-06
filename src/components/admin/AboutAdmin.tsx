@@ -19,9 +19,9 @@ const AboutAdmin = () => {
     subtitle: 'Web Developer & Designer',
     bio: 'I am a passionate web developer with expertise in React, Node.js, and UI/UX design. With over 5 years of experience building modern web applications, I focus on creating responsive, accessible, and performant user experiences.',
     education: 'Master\'s Degree in Computer Science',
-    experience_years: 5,
+    experience_years: 4,
     awards: 'Best Web Design 2023',
-    project_count: 50,
+    project_count: 20,
     is_active: true
   });
   
